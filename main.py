@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QApplication, QVBoxLayout, QLabel, QWidget, QLineEdi
 from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
+import mysql.connector
  
 
 def connect_to_database(database_filename="./database.db"):
