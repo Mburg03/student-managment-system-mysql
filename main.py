@@ -3,10 +3,9 @@ from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
 import mysql.connector
- 
 
-def connect_to_database(database_filename="./database.db"):
-    connection = sqlite3.connect(database_filename)
+def connect_to_database(host='localhost', user='root', password='M@rito_2003', database='school'):
+    connection = mysql.connector.connect(host=host, user=user, password=password, database=database)
     return connection
 
 
@@ -86,7 +85,10 @@ class MainWindow(QMainWindow):
 
     def load_data(self):
         connection = connect_to_database()
-        result = connection.execute("SELECt * FROM students")
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM students")
+
+        result = cursor.fetchall()
         enumerated_result = enumerate(result)
         self.table.setRowCount(0)
 
@@ -177,7 +179,7 @@ class InsertDialog(QDialog):
 
         connection = connect_to_database()
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)", (name, course, mobile))
+        cursor.execute("INSERT INTO students (name, course, mobile) VALUES (%s, %s, %s)", (name, course, mobile))
 
         connection.commit()
         cursor.close()
@@ -211,7 +213,7 @@ class SearchDialog(QDialog):
         connection = connect_to_database()
         cursor = connection.cursor()
         name = self.student_name.text()
-        cursor.execute("SELECT * FROM students WHERE name =?", (name,))
+        cursor.execute("SELECT * FROM students WHERE name =%s", (name,))
         results = cursor.fetchall()
 
         connection.commit()
@@ -280,10 +282,10 @@ class EditDialog(QDialog):
 
         cursor.execute("""
             UPDATE students
-            SET name =?,
-                course =?,
-                mobile =?
-            WHERE id =?
+            SET name = %s,
+                course = %s,
+                mobile =%s
+            WHERE id =%s
         """, (new_name, new_course, new_mobile, current_student_id))
 
         connection.commit()
@@ -324,7 +326,7 @@ class DeleteDialog(QDialog):
         self.table_student_id = main_window.table.item(index, 0).text()
 
         # Deleting the student record
-        cursor.execute("DELETE FROM students WHERE id =?", (self.table_student_id,))
+        cursor.execute("DELETE FROM students WHERE id = %s", (self.table_student_id,))
 
         # Refreshing main window and closing connections
         connection.commit()
